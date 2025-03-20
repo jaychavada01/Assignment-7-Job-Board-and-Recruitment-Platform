@@ -2,7 +2,7 @@ const { DataTypes, UUIDV4 } = require("sequelize");
 const { sequelize } = require("../config/database");
 
 const CompanyProfile = sequelize.define(
-  "CompanyProfile", // Changed to match capitalization in associations
+  "CompanyProfile",
   {
     id: {
       type: DataTypes.UUID,
@@ -51,13 +51,15 @@ const CompanyProfile = sequelize.define(
     // Common Fields
     isActive: {
       type: DataTypes.BOOLEAN,
-      allowNull: false,
+      allowNull: true,
       defaultValue: true,
     },
     createdBy: {
       type: DataTypes.UUID,
       allowNull: false,
       references: { model: "Users", key: "id" },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
     },
     updatedBy: {
       type: DataTypes.UUID,

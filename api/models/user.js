@@ -35,13 +35,19 @@ const User = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    resume: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     companyId: {
       type: DataTypes.UUID,
       allowNull: true,
-      // references: {
-      //   model: "CompanyProfiles",
-      //   key: "id",
-      // },
+      references: {
+        model: "CompanyProfiles", // Ensure correct model name
+        key: "id",
+      },
+      onDelete: "SET NULL", // When a company is deleted, set users' companyId to NULL
+      onUpdate: "CASCADE",
     },
     isBlocked: {
       type: DataTypes.BOOLEAN,
@@ -55,7 +61,7 @@ const User = sequelize.define(
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },
-    resume: {
+    accessToken: {
       type: DataTypes.STRING,
       allowNull: true,
     },

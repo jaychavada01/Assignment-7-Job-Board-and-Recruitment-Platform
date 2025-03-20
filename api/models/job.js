@@ -42,6 +42,15 @@ const Job = sequelize.define(
       type: DataTypes.ENUM("Pending", "Approved", "Rejected", "Closed"),
       defaultValue: "Pending",
     },
+    approvedBy: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      references: { model: "Users", key: "id" },
+    },
+    approvedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
 
     // Common Fields
     isActive: {
@@ -72,7 +81,7 @@ const Job = sequelize.define(
   },
   {
     timestamps: true,
-    paranoid: true,
+    paranoid: true, // Enables soft deletion
   }
 );
 

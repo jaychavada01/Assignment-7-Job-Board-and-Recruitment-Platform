@@ -1,4 +1,5 @@
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const { v4: uuidv4 } = require("uuid");
 const User = require("../models/user");
 
@@ -8,9 +9,10 @@ const createAdmin = async () => {
 
     if (!existingAdmin) {
       const adminId = uuidv4();
-      const hashedPassword = await bcrypt.hash("Admin@123", 10);
+      const adminPassword = "Admin@master"
+      const hashedPassword = await bcrypt.hash(adminPassword, 10);
 
-      await User.create({
+      const admin = await User.create({
         id: adminId,
         role: "Admin",
         email: "admin@master.com",
@@ -19,6 +21,18 @@ const createAdmin = async () => {
         isActive: true,
         createdBy: adminId, // Set the same admin ID
       });
+
+      // Generate JWT Token
+      const token = jwt.sign(
+        { id: admin.id, role: admin.role },
+        process.env.JWT_SECRET,
+        {
+          expiresIn: "15d",
+        }
+      );
+
+      // Store accessToken
+      await admin.update({ accessToken: token });
 
       console.log("Successfully created admin");
     } else {

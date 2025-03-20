@@ -15,31 +15,41 @@ module.exports = {
   //? Validation Rules
   VALIDATION_RULES: {
     SIGNUP: {
-      fullName: "required|string|min:2",
+      name: "required|string|min:2",
       email: "required|email",
       password:
         "required|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$/",
+      role: "required|in:Employer,JobSeeker",
+      phone: "required|min:10",
+      companyId: "required_if:role,Employer|regex:/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/",
+      profilePic: "nullable|mimes:jpeg,png,jpg",
+      resume: "nullable|mimes:pdf,doc,docx",
     },
+
     LOGIN: {
       email: "required|email",
       password: "required|string|min:8",
+      role: "required|in:Employer,JobSeeker,Admin",
     },
-    CHANGE_PASSWORD: {
-      oldPassword: "required|string|min:8",
-      newPassword:
-        "required|string|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$/",
-    },
-    FORGET_PASSWORD: {
-      email: "required|email",
-    },
-    RESET_PASSWORD: {
-      token: "required|string",
-      newPassword:
-        "required|string|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$/",
-    },
+
     UPDATE_USER: {
-      fullName: "required|string|min:2",
-      email: "required|email",
+      name: "string|min:2",
+      phone: "string|min:10",
+      profilePic: "nullable|mimes:jpeg,png,jpg",
+      resume: "nullable|mimes:pdf,doc,docx",
+      companyId: "nullable|regex:/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/",
+      isBlocked: "boolean",
+    },
+
+    CREATE_COMPANY: {
+      companyName: "required|string",
+      industry: "required|string",
+      companySize: "required|in:1-10,11-50,51-200,201-500,501+",
+      location: "required|string",
+      website: "url",
+      about: "string",
+      foundedYear: "integer|min:1800|max:2025",
+      companyLogo: "nullable|mimes:jpeg,png,jpg",
     },
   },
 };

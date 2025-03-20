@@ -1,10 +1,22 @@
+require("./models");
+
 const express = require("express");
 const { sequelize } = require("./config/database");
 const createAdmin = require("./scripts/createAdmin");
 const userRoute = require("./routes/userRoute");
+const companyRoute = require("./routes/companyRoute");
+const jobRoute = require("./routes/jobRoute");
+const { STATUS_CODES } = require("./config/constant");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+app.use(express.json());
+
+// routes
+app.use("/users", userRoute);
+app.use("/companies", companyRoute);
+app.use("/jobs", jobRoute);
 
 (async () => {
   try {
@@ -12,9 +24,6 @@ const PORT = process.env.PORT || 5000;
     console.log("Database connected successfully!");
 
     await sequelize.sync({ alter: true });
-
-    // routes
-    app.use("/users", userRoute);
 
     // Create Admin on Server Start
     await createAdmin();

@@ -9,8 +9,12 @@ Assignment 7/
 │  │  ├─ constant.js
 │  │  └─ database.js
 │  ├─ controllers/
+│  │  ├─ companyController.js
+│  │  ├─ jobController.js
 │  │  └─ userController.js
 │  ├─ middleware/
+│  │  ├─ auth.js
+│  │  └─ upload.js
 │  ├─ models/
 │  │  ├─ application.js
 │  │  ├─ companyProfile.js
@@ -20,9 +24,15 @@ Assignment 7/
 │  │  ├─ job.js
 │  │  └─ user.js
 │  ├─ routes/
+│  │  ├─ companyRoute.js
+│  │  ├─ jobRoute.js
 │  │  └─ userRoute.js
 │  ├─ scripts/
 │  │  └─ createAdmin.js
+│  ├─ uploads/
+│  │  ├─ companyLogo/
+│  │  ├─ profilepic/
+│  │  └─ resume/
 │  ├─ utils/
 │  ├─ .env
 │  ├─ package-lock.json
@@ -30,6 +40,7 @@ Assignment 7/
 │  └─ server.js
 ├─ .gitignore
 └─ readme.md
+
 ```
 
 ## 🚀 Project Overview
@@ -83,6 +94,7 @@ OR (for development with auto-restart)
 ```bash
 nodemon server.js
 ```
+
 ## 👤 Admin User Setup
 
 An admin user is automatically created on server startup using the `createAdmin.js` script. Ensure your database is correctly configured before running the server.
