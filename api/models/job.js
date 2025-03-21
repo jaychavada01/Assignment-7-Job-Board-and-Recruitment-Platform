@@ -42,12 +42,30 @@ const Job = sequelize.define(
       type: DataTypes.ENUM("Pending", "Approved", "Rejected", "Closed"),
       defaultValue: "Pending",
     },
+    requiredExperience: {
+      type: DataTypes.INTEGER, // Minimum years of experience required
+      allowNull: false,
+      defaultValue: 0,
+    },
+    requiredSkills: {
+      type: DataTypes.ARRAY(DataTypes.STRING), // Required skills for the job
+      allowNull: true,
+    },
     approvedBy: {
       type: DataTypes.UUID,
       allowNull: true,
       references: { model: "Users", key: "id" },
     },
     approvedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    rejectedBy: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      references: { model: "Users", key: "id" },
+    },
+    rejectedAt: {
       type: DataTypes.DATE,
       allowNull: true,
     },

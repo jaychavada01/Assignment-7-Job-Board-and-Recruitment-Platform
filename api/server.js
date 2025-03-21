@@ -6,7 +6,7 @@ const createAdmin = require("./scripts/createAdmin");
 const userRoute = require("./routes/userRoute");
 const companyRoute = require("./routes/companyRoute");
 const jobRoute = require("./routes/jobRoute");
-const { STATUS_CODES } = require("./config/constant");
+const applicationRoute = require("./routes/applicationRoute");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -17,6 +17,7 @@ app.use(express.json());
 app.use("/users", userRoute);
 app.use("/companies", companyRoute);
 app.use("/jobs", jobRoute);
+app.use("/applications", applicationRoute);
 
 (async () => {
   try {

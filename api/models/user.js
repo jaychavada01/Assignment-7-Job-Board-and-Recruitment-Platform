@@ -49,6 +49,14 @@ const User = sequelize.define(
       onDelete: "SET NULL", // When a company is deleted, set users' companyId to NULL
       onUpdate: "CASCADE",
     },
+    experience: {
+      type: DataTypes.INTEGER, // Experience in years
+      allowNull: true,
+    },
+    skills: {
+      type: DataTypes.ARRAY(DataTypes.STRING), // Array of skills
+      allowNull: true,
+    },
     isBlocked: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
