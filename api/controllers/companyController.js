@@ -16,13 +16,6 @@ const validateRequest = (data, rules, res) => {
 //** Register Company (Admin Only) **
 exports.registerCompany = async (req, res) => {
   try {
-    // Check if the logged-in user is an Admin
-    if (req.user.role !== "Admin") {
-      return res
-        .status(STATUS_CODES.FORBIDDEN)
-        .json({ message: "Only Admins can create a company profile." });
-    }
-
     // Validate request
     if (!validateRequest(req.body, VALIDATION_RULES.CREATE_COMPANY, res)) {
       return;
@@ -75,13 +68,6 @@ exports.registerCompany = async (req, res) => {
 //** Update Company Profile (Admin Only) **
 exports.updateCompany = async (req, res) => {
   try {
-    // Check if the logged-in user is an Admin
-    if (req.user.role !== "Admin") {
-      return res
-        .status(STATUS_CODES.FORBIDDEN)
-        .json({ message: "Only Admins can edit company profiles." });
-    }
-
     const { id } = req.params;
 
     // Validate request

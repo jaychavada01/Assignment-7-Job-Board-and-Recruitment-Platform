@@ -10,9 +10,11 @@ const {
 } = require("../controllers/userController");
 const { authenticate } = require("../middleware/auth");
 const upload = require("../middleware/upload");
+const { authRole } = require("../middleware/authRole");
 
 const router = express.Router();
 
+// Public routes (No authentication required)
 router.post(
   "/register",
   upload.fields([
@@ -22,22 +24,23 @@ router.post(
   registerUser
 );
 router.post("/login", loginUser);
-router.post("/logout", authenticate, logoutUser);
 
+// Apply authentication middleware only to protected routes
+router.use(authenticate);
 
-// Route (Only Admin can access)
-router.get("/all", authenticate, getAllUsers);
+router.post("/logout", logoutUser);
+
+// ** Routes (Only Admin) **
+router.get("/all", authRole("Admin"), getAllUsers);
 router.put(
   "/update/:id",
-  authenticate,
+  authRole("Admin"),
   upload.fields([{ name: "profilePic" }, { name: "resume" }]),
   updateUser
 );
+router.delete("/approve-deletion/:id", authRole("Admin"), approveDeletion);
 
-// Login with user
-router.patch("/req-deletion/:userId", authenticate, requestDeletion);
-
-// admin only
-router.delete("/approve-deletion/:id", authenticate, approveDeletion);
+// Request deletion by user
+router.patch("/req-deletion/:userId", requestDeletion);
 
 module.exports = router;

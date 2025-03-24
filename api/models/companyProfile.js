@@ -76,6 +76,13 @@ const CompanyProfile = sequelize.define(
       allowNull: true,
       defaultValue: false,
     },
+    deletedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },deletedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
   },
   {
     timestamps: true,

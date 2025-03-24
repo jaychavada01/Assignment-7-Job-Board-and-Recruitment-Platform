@@ -5,7 +5,7 @@ const InterviewInvitation = require("./interviewInvitation");
 const Job = require("./job");
 const User = require("./user");
 
-// Company & Users
+// ✅ Company & Users
 CompanyProfile.hasMany(User, {
   foreignKey: "companyId",
   as: "employees",
@@ -19,7 +19,7 @@ User.belongsTo(CompanyProfile, {
   onUpdate: "CASCADE",
 });
 
-// User (Employer) & Job
+// ✅ User (Employer) & Job
 User.hasMany(Job, {
   foreignKey: "employerId",
   as: "jobs",
@@ -31,28 +31,28 @@ Job.belongsTo(User, {
   onDelete: "CASCADE",
 });
 
-// Job & CompanyProfile
+// ✅ Job & CompanyProfile
 User.belongsTo(CompanyProfile, { foreignKey: "companyId", as: "company" });
 
-// 🔹 Job & Application (One-to-Many)
-Job.hasMany(Application, {
-  foreignKey: "jobId",
-  as: "applications",
+// ✅ Employer & Feedback (One-to-Many)
+User.hasMany(Feedback, {
+  foreignKey: "employerId",
+  as: "givenFeedbacks",
   onDelete: "CASCADE",
 });
-Application.belongsTo(Job, {
-  foreignKey: "jobId",
-  as: "job",
+Feedback.belongsTo(User, {
+  foreignKey: "employerId",
+  as: "employer",
   onDelete: "CASCADE",
 });
 
-// 🔹 User (JobSeeker) & Application (One-to-Many)
-User.hasMany(Application, {
+// ✅ JobSeeker & Feedback (One-to-Many)
+User.hasMany(Feedback, {
   foreignKey: "jobSeekerId",
-  as: "applications",
+  as: "receivedFeedbacks",
   onDelete: "CASCADE",
 });
-Application.belongsTo(User, {
+Feedback.belongsTo(User, {
   foreignKey: "jobSeekerId",
   as: "jobSeeker",
   onDelete: "CASCADE",

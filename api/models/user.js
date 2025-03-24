@@ -56,6 +56,7 @@ const User = sequelize.define(
     skills: {
       type: DataTypes.ARRAY(DataTypes.STRING), // Array of skills
       allowNull: true,
+      defaultValue: [],
     },
     isBlocked: {
       type: DataTypes.BOOLEAN,
@@ -100,6 +101,10 @@ const User = sequelize.define(
       allowNull: true,
       defaultValue: false,
     },
+    deletedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
   },
   {
     timestamps: true, // Adds createdAt & updatedAt
@@ -107,9 +112,14 @@ const User = sequelize.define(
   }
 );
 
-// Hash password before creating user
 User.beforeCreate(async (user) => {
   user.password = await bcrypt.hash(user.password, 10);
+});
+
+User.beforeUpdate(async (user) => {
+  if (user.changed("password")) {
+    user.password = await bcrypt.hash(user.password, 10);
+  }
 });
 
 module.exports = User;

@@ -7,6 +7,7 @@ const userRoute = require("./routes/userRoute");
 const companyRoute = require("./routes/companyRoute");
 const jobRoute = require("./routes/jobRoute");
 const applicationRoute = require("./routes/applicationRoute");
+const feedbackRoute = require("./routes/feedbackRoute");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -18,6 +19,7 @@ app.use("/users", userRoute);
 app.use("/companies", companyRoute);
 app.use("/jobs", jobRoute);
 app.use("/applications", applicationRoute);
+app.use("/feedbacks", feedbackRoute);
 
 (async () => {
   try {

@@ -32,8 +32,17 @@ exports.registerUser = async (req, res) => {
   try {
     if (!validateRequest(req.body, VALIDATION_RULES.SIGNUP, res)) return;
 
-    const { name, email, password, role, phone, companyId, createdBy } =
-      req.body;
+    const {
+      name,
+      email,
+      password,
+      role,
+      phone,
+      companyId,
+      experience,
+      skills,
+      createdBy = null,
+    } = req.body;
 
     // Validate Role
     if (!["Employer", "JobSeeker"].includes(role)) {
@@ -54,25 +63,30 @@ exports.registerUser = async (req, res) => {
         .json({ message: "Company ID is not allowed for JobSeekers" });
     }
 
-    // Check email uniqueness based on email & role (ignoring ID)
+    // Check email uniqueness based on email & role
     const existingUser = await User.findOne({
       where: { email, role },
-      attributes: ["id"],
     });
 
     if (existingUser) {
-      return res
-        .status(STATUS_CODES.CONFLICT)
-        .json({
-          message: "Email already in use for this role. Use a different email.",
-        });
+      return res.status(STATUS_CODES.CONFLICT).json({
+        message: "Email already in use for this role. Use a different email.",
+      });
     }
 
-    // Only process files if email is unique
-    const profilePic = req.files?.profilePic
-      ? req.files.profilePic[0].path
-      : null;
-    const resume = req.files?.resume ? req.files.resume[0].path : null;
+    // Handling `skills` properly (array conversion)
+    let formattedSkills = [];
+    if (skills) {
+      if (typeof skills === "string") {
+        formattedSkills = skills.split(",").map((skill) => skill.trim());
+      } else if (Array.isArray(skills)) {
+        formattedSkills = skills;
+      }
+    }
+
+    // Handle file uploads
+    const profilePic = req.files?.profilePic?.[0]?.path || null;
+    const resume = req.files?.resume?.[0]?.path || null;
 
     // Create User
     const newUser = await User.create({
@@ -84,10 +98,12 @@ exports.registerUser = async (req, res) => {
       companyId: role === "Employer" ? companyId : null,
       profilePic,
       resume,
-      createdBy: createdBy || null, // If admin registers user, assign createdBy
+      createdBy, // Null by default or provided value
+      experience: role === "JobSeeker" ? parseInt(experience) || 0 : null, // Convert to number
+      skills: role === "JobSeeker" ? formattedSkills : null, // Only JobSeekers have skills
     });
 
-    // If user registered themselves, assign createdBy to their own ID
+    // Assign `createdBy` if not provided (self-registration)
     if (!createdBy) {
       newUser.createdBy = newUser.id;
       await newUser.save();
@@ -97,10 +113,10 @@ exports.registerUser = async (req, res) => {
 
     return res.status(STATUS_CODES.CREATED).json({
       message: "User registered successfully",
-      user: newUser,
       token,
     });
   } catch (error) {
+    console.error("Registration error:", error);
     return res
       .status(STATUS_CODES.SERVER_ERROR)
       .json({ message: error.message });
@@ -151,7 +167,6 @@ exports.loginUser = async (req, res) => {
     // Generate and store token
     const token = await generateToken(user);
 
-    // Set user as active
     user.isActive = true;
     await user.save();
 
@@ -199,13 +214,6 @@ exports.logoutUser = async (req, res) => {
 // ** View all users (Only Admin) **
 exports.getAllUsers = async (req, res) => {
   try {
-    // Ensure only admin can access this route
-    if (req.user.role !== "Admin") {
-      return res.status(STATUS_CODES.FORBIDDEN).json({
-        message: "Access denied. Only Admin can view users.",
-      });
-    }
-
     // Fetch all users, including soft-deleted ones
     const activeUsers = await User.findAll({
       where: { isDeleted: false },
@@ -240,12 +248,6 @@ exports.getAllUsers = async (req, res) => {
 // ** Update User (Only Admin) **
 exports.updateUser = async (req, res) => {
   try {
-    if (req.user.role !== "Admin") {
-      return res
-        .status(STATUS_CODES.FORBIDDEN)
-        .json({ message: "Access denied. Only Admin can update users." });
-    }
-
     if (!validateRequest(req.body, VALIDATION_RULES.UPDATE_USER, res)) return;
 
     const user = await User.findByPk(req.params.id, { paranoid: false });
@@ -335,13 +337,6 @@ exports.requestDeletion = async (req, res) => {
 // ** Approve deletion by Admin **
 exports.approveDeletion = async (req, res) => {
   try {
-    // Ensure only admin can approve deletion
-    if (req.user.role !== "Admin") {
-      return res.status(403).json({
-        message: "Access denied. Only Admin can approve deletion requests.",
-      });
-    }
-
     const { id } = req.params;
 
     // Find user

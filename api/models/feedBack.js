@@ -4,7 +4,11 @@ const { sequelize } = require("../config/database");
 const Feedback = sequelize.define(
   "Feedback",
   {
-    id: { type: DataTypes.UUID, defaultValue: UUIDV4, primaryKey: true },
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: UUIDV4,
+      primaryKey: true,
+    },
     employerId: {
       type: DataTypes.UUID,
       allowNull: false,
@@ -15,12 +19,10 @@ const Feedback = sequelize.define(
       allowNull: false,
       references: { model: "Users", key: "id" },
     },
-    applicationId: {
-      type: DataTypes.UUID,
+    feedbackText: {
+      type: DataTypes.TEXT,
       allowNull: false,
-      references: { model: "Applications", key: "id" },
     },
-    feedbackText: { type: DataTypes.TEXT, allowNull: false },
     rating: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -48,6 +50,10 @@ const Feedback = sequelize.define(
       type: DataTypes.BOOLEAN,
       allowNull: true,
       defaultValue: false,
+    },
+    deletedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
     },
   },
   {

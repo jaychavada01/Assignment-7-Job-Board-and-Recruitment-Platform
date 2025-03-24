@@ -1,5 +1,6 @@
+const { Op } = require("sequelize");
 const { STATUS_CODES } = require("../config/constant");
-const { Job, User, CompanyProfile } = require("../models");
+const { Job, User, CompanyProfile, Application } = require("../models");
 
 // ** Job Creation (Employer only)
 exports.createJob = async (req, res) => {
@@ -11,13 +12,54 @@ exports.createJob = async (req, res) => {
       industry,
       experienceLevel,
       salaryRange,
+      requiredExperience,
+      requiredSkills,
+      maxApplicants,
     } = req.body;
 
-    // Check if the user is an Employer
-    if (req.user.role !== "Employer") {
+    // Prevent duplicate job titles by the same employer
+    const existingJob = await Job.findOne({
+      where: { employerId: req.user.id, title, isDeleted: false },
+    });
+
+    if (existingJob) {
       return res
-        .status(STATUS_CODES.FORBIDDEN)
-        .json({ message: "Only Employers can create jobs." });
+        .status(STATUS_CODES.CONFLICT)
+        .json({ message: "A job with this title already exists." });
+    }
+
+    // Convert `requiredExperience` to an integer (default to 0 if invalid)
+    const experience = parseInt(requiredExperience, 10) || 0;
+
+    // Handle `requiredSkills` properly (ensure it's an array)
+    let skillsArray = [];
+    if (requiredSkills) {
+      if (typeof requiredSkills === "string") {
+        skillsArray = requiredSkills.split(",").map((skill) => skill.trim());
+      } else if (Array.isArray(requiredSkills)) {
+        skillsArray = requiredSkills;
+      }
+    }
+
+    // Validate required fields
+    if (experience < 0) {
+      return res
+        .status(STATUS_CODES.BAD_REQUEST)
+        .json({ message: "Experience level must be a positive number." });
+    }
+
+    if (skillsArray.length === 0) {
+      return res
+        .status(STATUS_CODES.BAD_REQUEST)
+        .json({ message: "At least one required skill must be provided." });
+    }
+
+    // Ensure maxApplicants is a positive integer (default: 10)
+    const maxApps = parseInt(maxApplicants, 10) || 10;
+    if (maxApps < 1) {
+      return res
+        .status(STATUS_CODES.BAD_REQUEST)
+        .json({ message: "Max applicants must be at least 1." });
     }
 
     // Create the job with "Pending" status
@@ -29,15 +71,19 @@ exports.createJob = async (req, res) => {
       industry,
       experienceLevel,
       salaryRange,
+      requiredExperience: experience, // Converted integer
+      requiredSkills: skillsArray, // Parsed array
+      maxApplicants: maxApps,
+      currentApplicants: 0, // Start from 0
       status: "Pending",
       createdBy: req.user.id,
     });
 
     return res.status(STATUS_CODES.CREATED).json({
       message: "Job created successfully. Awaiting admin approval.",
-      job,
     });
   } catch (error) {
+    console.error("Job creation error:", error);
     return res
       .status(STATUS_CODES.SERVER_ERROR)
       .json({ message: error.message });
@@ -47,12 +93,6 @@ exports.createJob = async (req, res) => {
 // ** Job Approval (Admin Only)
 exports.approveJob = async (req, res) => {
   try {
-    if (req.user.role !== "Admin") {
-      return res
-        .status(STATUS_CODES.FORBIDDEN)
-        .json({ message: "Only admins can approve jobs." });
-    }
-
     const { id } = req.params;
 
     const job = await Job.findOne({ where: { id, isDeleted: false } });
@@ -83,12 +123,6 @@ exports.approveJob = async (req, res) => {
 // ** Job Reject (Admin Only)
 exports.rejectJob = async (req, res) => {
   try {
-    if (req.user.role !== "Admin") {
-      return res
-        .status(STATUS_CODES.FORBIDDEN)
-        .json({ message: "Only admins can approve jobs." });
-    }
-
     const { id } = req.params;
 
     const job = await Job.findOne({ where: { id, isDeleted: false } });
@@ -114,7 +148,7 @@ exports.rejectJob = async (req, res) => {
   }
 };
 
-// ** Get all jobs
+// ** Get all jobs (Employer only)
 exports.getAllJobs = async (req, res) => {
   try {
     const jobs = await Job.findAll({
@@ -129,6 +163,18 @@ exports.getAllJobs = async (req, res) => {
               model: CompanyProfile,
               as: "company",
               attributes: ["companyName", "location"],
+            },
+          ],
+        },
+        {
+          model: Application, // Include job applications
+          as: "applications",
+          attributes: ["id", "status"], // Fetch relevant fields
+          include: [
+            {
+              model: User,
+              as: "jobSeeker",
+              attributes: ["id", "name", "email"], // Fetch applicant details
             },
           ],
         },
@@ -163,13 +209,6 @@ exports.updateJob = async (req, res) => {
       return res
         .status(STATUS_CODES.NOT_FOUND)
         .json({ message: "Job not found." });
-    }
-
-    // Check if user is the employer who created this job
-    if (req.user.role !== "Employer" || req.user.id !== job.employerId) {
-      return res
-        .status(STATUS_CODES.FORBIDDEN)
-        .json({ message: "You can only edit your own jobs." });
     }
 
     // Cannot update if job is closed or rejected
@@ -227,13 +266,6 @@ exports.deleteJob = async (req, res) => {
         .json({ message: "Job not found." });
     }
 
-    // Check if the user is the employer who created it
-    if (req.user.role !== "Employer" || req.user.id !== job.employerId) {
-      return res
-        .status(STATUS_CODES.FORBIDDEN)
-        .json({ message: "You can only delete your own jobs." });
-    }
-
     // Prevent deleting if the job is already closed or rejected
     if (job.status === "Closed" || job.status === "Rejected") {
       return res
@@ -273,13 +305,6 @@ exports.closeJob = async (req, res) => {
         .json({ message: "Job not found." });
     }
 
-    // Check if the user is the employer who created it
-    if (req.user.role !== "Employer" || req.user.id !== job.employerId) {
-      return res
-        .status(STATUS_CODES.FORBIDDEN)
-        .json({ message: "You can only close your own jobs." });
-    }
-
     // Prevent closing if it's already closed or rejected
     if (job.status === "Closed" || job.status === "Rejected") {
       return res
@@ -293,6 +318,47 @@ exports.closeJob = async (req, res) => {
     return res
       .status(STATUS_CODES.SUCCESS)
       .json({ message: "Job closed successfully." });
+  } catch (error) {
+    return res
+      .status(STATUS_CODES.SERVER_ERROR)
+      .json({ message: error.message });
+  }
+};
+
+// ** Search Job (JobSeeker Only)
+exports.searchJob = async (req, res) => {
+  try {
+    const { location, industry, experienceLevel } = req.query;
+
+    // Base search criteria (Only Approved & Not Deleted Jobs)
+    const whereClause = { isDeleted: false, status: "Approved" };
+
+    // Apply filters (case-insensitive & partial match)
+    if (location) whereClause.location = { [Op.iLike]: `%${location}%` };
+    if (industry) whereClause.industry = { [Op.iLike]: `%${industry}%` };
+    if (experienceLevel) whereClause.experienceLevel = experienceLevel;
+
+    // Fetch jobs matching the criteria
+    const jobs = await Job.findAll({
+      where: whereClause,
+      include: [
+        {
+          model: User,
+          as: "employer",
+          attributes: ["id", "name", "email"],
+          include: [
+            {
+              model: CompanyProfile,
+              as: "company",
+              attributes: ["companyName", "location"],
+            },
+          ],
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
+
+    return res.status(STATUS_CODES.SUCCESS).json({ jobs });
   } catch (error) {
     return res
       .status(STATUS_CODES.SERVER_ERROR)

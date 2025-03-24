@@ -11,6 +11,7 @@ const InterviewInvitation = sequelize.define(
     },
     applicationId: {
       type: DataTypes.UUID,
+      defaultValue: UUIDV4,
       allowNull: false,
       references: { model: "Applications", key: "id" },
       onDelete: "CASCADE",
@@ -29,8 +30,10 @@ const InterviewInvitation = sequelize.define(
       type: DataTypes.TEXT,
       allowNull: true,
     },
-
-    // Common Fields
+    interviewLocation: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     isActive: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
@@ -55,6 +58,10 @@ const InterviewInvitation = sequelize.define(
       type: DataTypes.BOOLEAN,
       allowNull: true,
       defaultValue: false,
+    },
+    deletedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
     },
   },
   {

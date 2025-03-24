@@ -23,12 +23,12 @@ const Application = sequelize.define(
       type: DataTypes.ENUM(
         "Applied",
         "In Review",
+        "Accepted",
         "Interview Scheduled",
         "Rejected"
       ),
       defaultValue: "Applied",
     },
-
     // Common Fields
     isActive: {
       type: DataTypes.BOOLEAN,
@@ -54,6 +54,10 @@ const Application = sequelize.define(
       type: DataTypes.BOOLEAN,
       allowNull: true,
       defaultValue: false,
+    },
+    deletedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
     },
   },
   {

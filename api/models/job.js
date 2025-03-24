@@ -43,13 +43,24 @@ const Job = sequelize.define(
       defaultValue: "Pending",
     },
     requiredExperience: {
-      type: DataTypes.INTEGER, // Minimum years of experience required
+      type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
     },
     requiredSkills: {
-      type: DataTypes.ARRAY(DataTypes.STRING), // Required skills for the job
+      type: DataTypes.ARRAY(DataTypes.STRING),
       allowNull: true,
+      defaultValue: [],
+    },
+    maxApplicants: {
+      type: DataTypes.INTEGER, // Maximum applicants allowed
+      allowNull: false,
+      defaultValue: 10, // Default value (can be changed per job)
+    },
+    currentApplicants: {
+      type: DataTypes.INTEGER, // Tracks current number of applications
+      allowNull: false,
+      defaultValue: 0,
     },
     approvedBy: {
       type: DataTypes.UUID,
@@ -99,7 +110,7 @@ const Job = sequelize.define(
   },
   {
     timestamps: true,
-    paranoid: true, // Enables soft deletion
+    paranoid: true,
   }
 );
 
