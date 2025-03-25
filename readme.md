@@ -84,10 +84,17 @@ Create a `.env` file in the `api/` directory with the required configuration:
 
 ```env
 PORT=5000
+JWT_SECRET=your_key
 DB_HOST=your_database_host
 DB_USER=your_database_user
 DB_PASS=your_database_password
 DB_NAME=your_database_name
+
+# MAILTRAP CREDENTIALS
+MAILTRAP_HOST=smtp.mailtrap.io
+MAILTRAP_PORT=2525
+MAILTRAP_USER=your_mailtrap_username
+MAILTRAP_PASS=your_mailtrap_password
 ```
 
 ### 4️⃣ Run the Server
