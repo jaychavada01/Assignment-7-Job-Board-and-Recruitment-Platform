@@ -9,11 +9,14 @@ Assignment 7/
 │  │  ├─ constant.js
 │  │  └─ database.js
 │  ├─ controllers/
+│  │  ├─ applicationController.js
 │  │  ├─ companyController.js
+│  │  ├─ feedbackController.js
 │  │  ├─ jobController.js
 │  │  └─ userController.js
 │  ├─ middleware/
 │  │  ├─ auth.js
+│  │  ├─ authRole.js
 │  │  └─ upload.js
 │  ├─ models/
 │  │  ├─ application.js
@@ -24,7 +27,9 @@ Assignment 7/
 │  │  ├─ job.js
 │  │  └─ user.js
 │  ├─ routes/
+│  │  ├─ applicationRoute.js
 │  │  ├─ companyRoute.js
+│  │  ├─ feedbackRoute.js
 │  │  ├─ jobRoute.js
 │  │  └─ userRoute.js
 │  ├─ scripts/
@@ -34,12 +39,14 @@ Assignment 7/
 │  │  ├─ profilepic/
 │  │  └─ resume/
 │  ├─ utils/
+│  │  └─ mailer.js
 │  ├─ .env
 │  ├─ package-lock.json
 │  ├─ package.json
 │  └─ server.js
 ├─ .gitignore
 └─ readme.md
+
 
 ```
 
