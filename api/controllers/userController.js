@@ -6,6 +6,9 @@ const bcrypt = require("bcryptjs");
 const CompanyProfile = require("../models/companyProfile");
 const fs = require("fs");
 const path = require("path");
+const { setData } = require("../helpers/redis/setData");
+const { redisClient } = require("../config/constant");
+const { unsetData } = require("../helpers/redis/unsetData");
 
 const generateToken = async (user) => {
   const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
@@ -139,23 +142,22 @@ exports.loginUser = async (req, res) => {
         .json({ message: "Invalid email or password" });
     }
 
-    // Admin Login Check
+    // Admin Login Check (Hardcoded Password)
     if (user.role === "Admin") {
-      // Manually compare the hardcoded password for Admin
       if (password !== "Admin@master") {
         return res
           .status(STATUS_CODES.UNAUTHORIZED)
           .json({ message: "Invalid email or password" });
       }
     } else {
-      // Check role match (only for non-admin users)
+      // Role Validation for Non-Admins
       if (user.role !== role) {
         return res
           .status(STATUS_CODES.UNAUTHORIZED)
           .json({ message: "Role mismatch. Please check your credentials." });
       }
 
-      // Verify password for normal users
+      // Verify Password
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
         return res
@@ -164,11 +166,24 @@ exports.loginUser = async (req, res) => {
       }
     }
 
-    // Generate and store token
+    // Generate JWT Token
     const token = await generateToken(user);
 
+    // Update `isActive` status
     user.isActive = true;
-    await user.save();
+    await user.save(); // Ensure DB is updated before caching
+
+    // Prepare Cache Data
+    const userData = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      token,
+    };
+
+    // Store in Redis
+    await setData(user.role, user.id, userData);
 
     return res.status(STATUS_CODES.SUCCESS).json({
       message: "Login successful",
@@ -186,20 +201,23 @@ exports.loginUser = async (req, res) => {
 };
 
 // **Logout User**
+
 exports.logoutUser = async (req, res) => {
   try {
-    const user = req.user;
+    const user = req.user; // Get logged-in user from middleware
 
-    if (!user || !user.accessToken) {
-      return res
-        .status(STATUS_CODES.UNAUTHORIZED)
-        .json({ message: "User already logged out or session expired." });
+    if (!user) {
+      return res.status(STATUS_CODES.UNAUTHORIZED).json({
+        message: "User already logged out or session expired.",
+      });
     }
 
-    // Clear accessToken & set isActive to false
-    user.accessToken = null;
-    user.isActive = false; // Set user as inactive
+    // Set user as inactive
+    user.isActive = false;
     await user.save();
+
+    // Remove user data from Redis
+    await unsetData(user.role, user.id);
 
     return res.status(STATUS_CODES.SUCCESS).json({
       message: "Logout successful",
@@ -259,24 +277,22 @@ exports.updateUser = async (req, res) => {
 
     // Allowed fields to update
     const allowedUpdates = ["name", "phone", "companyId", "isBlocked"];
-
-    // Extract updates from request
     const updates = Object.fromEntries(
       Object.entries(req.body).filter(([key]) => allowedUpdates.includes(key))
     );
 
-    // Handle file uploads (Multer stores files in req.files)
+    // Handle file uploads
     if (req.files?.profilePic) {
-      updates.profilePic = req.files.profilePic[0].path; // Ensure correct path
+      updates.profilePic = req.files.profilePic[0].path;
     }
     if (req.files?.resume) {
       updates.resume = req.files.resume[0].path;
     }
 
-    // Update user
+    // Update user in DB
     await user.update({ ...updates, updatedBy: req.user.id });
 
-    // Fetch updated user from DB
+    // Fetch updated user
     const updatedUser = await User.findByPk(req.params.id, {
       attributes: [
         "id",
@@ -288,6 +304,9 @@ exports.updateUser = async (req, res) => {
         "isBlocked",
       ],
     });
+
+    // Update Redis Cache
+    await setData(user.role, user.id, updatedUser);
 
     return res.status(STATUS_CODES.SUCCESS).json({
       message: "User updated successfully.",

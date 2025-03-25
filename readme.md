@@ -14,6 +14,11 @@ Assignment 7/
 │  │  ├─ feedbackController.js
 │  │  ├─ jobController.js
 │  │  └─ userController.js
+│  ├─ helpers/
+│  │  └─ redis/
+│  │     ├─ getData.js
+│  │     ├─ setData.js
+│  │     └─ unsetData.js
 │  ├─ middleware/
 │  │  ├─ auth.js
 │  │  ├─ authRole.js
@@ -37,7 +42,9 @@ Assignment 7/
 │  ├─ uploads/
 │  │  ├─ companyLogo/
 │  │  ├─ profilepic/
+│  │  │  └─ 1742887442896-male.jpeg
 │  │  └─ resume/
+│  │     └─ 1742887442898-resume-sample.pdf
 │  ├─ utils/
 │  │  └─ mailer.js
 │  ├─ .env
@@ -62,6 +69,12 @@ The **Job Board and Recruitment Platform** is a Node.js-based backend system des
 - **Application Tracking**: Handle job applications
 - **Interview Invitations**: Schedule interviews
 - **Feedback System**: Collect feedback from candidates
+
+## Redis with Docker
+
+```bash
+docker run -p 6379:6379 -it redis/redis-stack-server:latest
+```
 
 ## 🛠️ Setup and Installation
 

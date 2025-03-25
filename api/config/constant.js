@@ -1,5 +1,23 @@
+require("dotenv").config();
+const redis = require("redis");
+
+const redisClient = redis.createClient({
+  socket: {
+    host: process.env.REDIS_HOST,
+    port: process.env.REDIS_PORT,
+  },
+});
+
+redisClient.connect();
+
+redisClient.on("connect", () => console.log("Connected to Redis"));
+redisClient.on("error", (err) => console.error("Redis Error:", err));
+
 module.exports = {
-  //? HTTP Status Codes
+  // Redis Client
+  redisClient,
+
+  // HTTP Status Codes
   STATUS_CODES: {
     SUCCESS: 200,
     CREATED: 201,
@@ -12,7 +30,7 @@ module.exports = {
     NOT_MODIFIED: 304,
   },
 
-  //? Validation Rules
+  // Validation Rules
   VALIDATION_RULES: {
     SIGNUP: {
       name: "required|string|min:2",
@@ -59,11 +77,13 @@ module.exports = {
       interviewLocation: "required|string",
       message: "string|max:500",
     },
+
     ADD_FEEDBACK: {
       jobSeekerId: "required|string",
       feedbackText: "required|string|min:10",
       rating: "integer|min:1|max:5",
     },
+
     UPDATE_FEEDBACK: {
       feedbackText: "required|string|min:10",
       rating: "integer|min:1|max:5",
