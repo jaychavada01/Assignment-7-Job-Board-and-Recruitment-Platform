@@ -26,7 +26,7 @@ Assignment 7/
 │  ├─ models/
 │  │  ├─ application.js
 │  │  ├─ companyProfile.js
-│  │  ├─ feedBack.js
+│  │  ├─ feedback.js
 │  │  ├─ index.js
 │  │  ├─ interviewInvitation.js
 │  │  ├─ job.js
@@ -53,8 +53,6 @@ Assignment 7/
 │  └─ server.js
 ├─ .gitignore
 └─ readme.md
-
-
 ```
 
 ## 🚀 Project Overview
@@ -69,12 +67,8 @@ The **Job Board and Recruitment Platform** is a Node.js-based backend system des
 - **Application Tracking**: Handle job applications
 - **Interview Invitations**: Schedule interviews
 - **Feedback System**: Collect feedback from candidates
-
-## Redis with Docker
-
-```bash
-docker run -p 6379:6379 -it redis/redis-stack-server:latest
-```
+- **Redis Integration**: Cache frequently accessed data
+- **File Uploads**: Supports profile pictures, company logos, and resumes
 
 ## 🛠️ Setup and Installation
 
@@ -82,7 +76,7 @@ docker run -p 6379:6379 -it redis/redis-stack-server:latest
 
 ```bash
 git clone https://github.com/jaychavada01/Assignment-7-Job-Board-and-Recruitment-Platform.git
-cd api
+cd Assignment-7/api
 ```
 
 ### 2️⃣ Install Dependencies
@@ -103,14 +97,20 @@ DB_USER=your_database_user
 DB_PASS=your_database_password
 DB_NAME=your_database_name
 
-# MAILTRAP CREDENTIALS
+# Mail Configuration
 MAILTRAP_HOST=smtp.mailtrap.io
 MAILTRAP_PORT=2525
 MAILTRAP_USER=your_mailtrap_username
 MAILTRAP_PASS=your_mailtrap_password
 ```
 
-### 4️⃣ Run the Server
+### 4️⃣ Run Redis with Docker
+
+```bash
+docker run -p 6379:6379 -it redis/redis-stack-server:latest
+```
+
+### 5️⃣ Run the Server
 
 ```bash
 npm run server
@@ -125,3 +125,45 @@ nodemon server.js
 ## 👤 Admin User Setup
 
 An admin user is automatically created on server startup using the `createAdmin.js` script. Ensure your database is correctly configured before running the server.
+
+## 📌 API Endpoints
+
+### **User Routes**
+- `POST /user/register` - Register a new user
+- `POST /user/login` - User login
+- `GET /user/:id` - Get user by ID
+- `PATCH /user/:id` - Update user details
+- `DELETE /user/:id` - Delete user
+
+### **Job Routes**
+- `POST /job/create` - Create a new job
+- `GET /job` - Get all jobs
+- `GET /job/:id` - Get job by ID
+- `PATCH /job/:id` - Update job details
+- `DELETE /job/:id` - Delete job
+
+### **Company Routes**
+- `POST /company/create` - Create a company profile
+- `GET /company` - Get all companies
+- `GET /company/:id` - Get company by ID
+- `PATCH /company/:id` - Update company details
+- `DELETE /company/:id` - Delete company
+
+### **Application Routes**
+- `POST /application/apply` - Apply for a job
+- `GET /application` - Get all applications
+- `GET /application/:id` - Get application by ID
+- `PATCH /application/:id` - Update application status
+- `DELETE /application/:id` - Delete application
+
+### **Feedback Routes**
+- `POST /feedback/create` - Submit feedback
+- `GET /feedback` - Get all feedback
+- `GET /feedback/:id` - Get feedback by ID
+
+## 🛡️ Security & Middleware
+
+- **Authentication Middleware (`auth.js`)**: Ensures protected routes require authentication.
+- **Role-Based Authorization (`authRole.js`)**: Restricts access based on user roles.
+- **File Uploads (`upload.js`)**: Handles profile picture and resume uploads securely.
+- **Redis Caching (`helpers/redis/`)**: Stores frequently accessed data to improve performance.
